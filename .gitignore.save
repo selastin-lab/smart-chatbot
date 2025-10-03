@@ -3,19 +3,15 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.db
+*.sqlite3
 
 # Virtual environment
 chatbot_env/
-venv/
-.env
 
 # Streamlit secrets
 .streamlit/secrets.toml
-.streamlit/secrets.toml*
 
-# macOS
+# OS files
 .DS_Store
 
-# Editor files
-.vscode/
-.idea/
