@@ -8,9 +8,6 @@ import tempfile
 import time
 from langdetect import detect
 
-# -------------------------
-# Configure Gemini API
-# -------------------------
 GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", "AIzaSyAZigZw2dkBTq5MsXJ4k95dsDMzijRmym8")
 if not GEMINI_KEY:
     st.error("⚠️ Gemini API key not found. Please add it to .streamlit/secrets.toml")
@@ -19,17 +16,12 @@ genai.configure(api_key=GEMINI_KEY)
 st.set_page_config(page_title="Milini Chatbot", page_icon="🤖", layout="wide")
 st.title("💬 Milini Chatbot")
 
-# -------------------------
-# Session state initialization
-# -------------------------
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "greeted" not in st.session_state:
     st.session_state.greeted = False
 
-# -------------------------
-# Generate response using Gemini
-# -------------------------
 def generate_response(prompt: str) -> str:
     if not prompt.strip():
         return "I didn't hear anything — please try again."
@@ -40,9 +32,7 @@ def generate_response(prompt: str) -> str:
     except Exception as e:
         return f"⚠️ Gemini error: {e}"
 
-# -------------------------
-# Decide whether to speak
-# -------------------------
+
 def should_speak(reply: str) -> bool:
     if not reply or "```" in reply or len(reply) > 500:
         return False
@@ -51,16 +41,14 @@ def should_speak(reply: str) -> bool:
         return False
     return True
 
-# -------------------------
-# TTS using edge-tts
-# -------------------------
+
 async def _speak_async(text: str, voice: str):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
         tmp_path = f.name
     communicate = edge_tts.Communicate(text, voice)
     await communicate.save(tmp_path)
 
-    # Play audio
+   
     if os.name == "posix":
         for cmd in (f"afplay {tmp_path}", f"mpv --no-video --really-quiet {tmp_path}", f"mpg123 {tmp_path}"):
             if os.system(cmd + " >/dev/null 2>&1") == 0:
@@ -86,9 +74,7 @@ def speak_text(reply: str, lang: str = "en"):
     except Exception:
         st.warning("TTS failed — showing audio widget instead.")
 
-# -------------------------
-# Speech recognition
-# -------------------------
+
 recognizer = sr.Recognizer()
 
 def listen_to_user(timeout=5, phrase_time_limit=8):
@@ -115,27 +101,20 @@ def listen_to_user(timeout=5, phrase_time_limit=8):
         st.error("Speech recognition service error.")
         return "", None
 
-# -------------------------
-# Language detection
-# -------------------------
+
 def detect_lang_safe(text: str) -> str:
     try:
         return "ta" if detect(text) == "ta" else "en"
     except Exception:
         return "en"
 
-# -------------------------
-# Display chat history
-# -------------------------
+
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         st.chat_message("user").markdown(msg["content"])
     else:
         st.chat_message("assistant").markdown(msg["content"])
 
-# -------------------------
-# First-time greeting
-# -------------------------
 if not st.session_state.greeted:
     greeting = "Hi — I'm Milini, your humanoid robot assistant. How can I help you today?"
     st.session_state.messages.append({"role":"assistant","content":greeting})
@@ -143,18 +122,13 @@ if not st.session_state.greeted:
     speak_text(greeting, lang="en")
     st.session_state.greeted = True
 
-# -------------------------
-# Bottom input row
-# -------------------------
 input_col, mic_col = st.columns([6, 1])
 with input_col:
     typed = st.chat_input("Type your message...")
 with mic_col:
     mic_clicked = st.button("🎤")
 
-# -------------------------
-# Handle mic input
-# -------------------------
+
 user_text = ""
 lang = None
 if mic_clicked:
@@ -163,18 +137,14 @@ if mic_clicked:
         st.session_state.messages.append({"role":"user","content":user_text})
         st.chat_message("user").markdown(user_text)
 
-# -------------------------
-# Handle typed input
-# -------------------------
+
 if typed:
     user_text = typed
     lang = detect_lang_safe(user_text)
     st.session_state.messages.append({"role": "user", "content": user_text})
     st.chat_message("user").markdown(user_text)
 
-# -------------------------
-# Generate and show reply
-# -------------------------
+
 if user_text:
     reply = generate_response(user_text)
     st.session_state.messages.append({"role":"assistant","content":reply})
