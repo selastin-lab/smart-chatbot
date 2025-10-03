@@ -8,7 +8,7 @@ import tempfile
 import time
 from langdetect import detect
 
-GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", "AIzaSyAZigZw2dkBTq5MsXJ4k95dsDMzijRmym8")
+GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", )
 if not GEMINI_KEY:
     st.error("⚠️ Gemini API key not found. Please add it to .streamlit/secrets.toml")
 genai.configure(api_key=GEMINI_KEY)
